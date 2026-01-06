@@ -1,13 +1,23 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Zap } from "lucide-react"
 import { UrlForm } from "@/components/url-form"
 import { RecentLinks } from "@/components/recent-links"
 
+interface User {
+  id: string
+  name: string
+  email: string
+  plan: 'free' | 'pro'
+}
+
 export default function Home() {
+  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [shortLinks, setShortLinks] = useState<
     Array<{
@@ -18,6 +28,20 @@ export default function Home() {
       createdAt: Date
     }>
   >([])
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      const parsedUser = JSON.parse(userData)
+      setUser(parsedUser)
+      
+      // Load user's links
+      const userLinks = localStorage.getItem(`links_${parsedUser.id}`)
+      if (userLinks) {
+        setShortLinks(JSON.parse(userLinks))
+      }
+    }
+  }, [])
 
   const handleCopyClick = (shortCode: string) => {
     const shortUrl = `${window.location.origin}/s/${shortCode}`
@@ -44,9 +68,39 @@ export default function Home() {
               <p className="text-xs text-muted-foreground">Smart URL shortening</p>
             </div>
           </div>
-          <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            Sign In
-          </Button>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Welcome, {user.name}</span>
+                <Button 
+                  size="sm" 
+                  onClick={() => router.push('/dashboard')}
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                >
+                  Dashboard
+                </Button>
+              </div>
+              <Button 
+                variant="outline"
+                size="sm" 
+                onClick={() => {
+                  localStorage.removeItem('user')
+                  setUser(null)
+                  setShortLinks([])
+                }}
+              >
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <Button 
+              size="sm" 
+              onClick={() => router.push('/auth')}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+            >
+              Sign In
+            </Button>
+          )}
         </div>
       </header>
 
