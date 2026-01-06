@@ -31,7 +31,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Header */}
       <header className="border-b border-border bg-card/40 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -44,7 +44,7 @@ export default function Home() {
               <p className="text-xs text-muted-foreground">Smart URL shortening</p>
             </div>
           </div>
-          <Button variant="outline" size="sm">
+          <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
             Sign In
           </Button>
         </div>
@@ -61,7 +61,7 @@ export default function Home() {
           </div>
 
           {/* URL Input Card */}
-          <Card className="bg-card border border-border p-6 md:p-8">
+          <Card className="bg-gradient-to-br from-white to-blue-50/30 border border-blue-100 p-6 md:p-8 shadow-sm">
             <UrlForm onLinkCreated={handleNewLink} />
           </Card>
         </section>
@@ -70,17 +70,17 @@ export default function Home() {
         {shortLinks.length > 0 && (
           <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="bg-card border border-border p-6">
+              <Card className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 p-6 shadow-sm">
                 <div className="text-muted-foreground text-sm font-medium mb-2">Total Links</div>
                 <div className="text-3xl font-bold text-primary">{shortLinks.length}</div>
               </Card>
-              <Card className="bg-card border border-border p-6">
+              <Card className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 p-6 shadow-sm">
                 <div className="text-muted-foreground text-sm font-medium mb-2">Total Clicks</div>
                 <div className="text-3xl font-bold text-primary">
                   {shortLinks.reduce((sum, link) => sum + link.clicks, 0)}
                 </div>
               </Card>
-              <Card className="bg-card border border-border p-6">
+              <Card className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 p-6 shadow-sm">
                 <div className="text-muted-foreground text-sm font-medium mb-2">Avg Clicks</div>
                 <div className="text-3xl font-bold text-primary">
                   {Math.round(shortLinks.reduce((sum, link) => sum + link.clicks, 0) / shortLinks.length)}

@@ -83,7 +83,7 @@ export function UrlForm({ onLinkCreated }: UrlFormProps) {
           <Button
             type="submit"
             disabled={isLoading}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 px-8"
+            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 shadow-lg shadow-blue-500/25 transition-all duration-200"
           >
             {isLoading ? (
               <>
