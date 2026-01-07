@@ -1,16 +1,17 @@
 import { baseApi } from "../baseApi";
 
-const visionApi = baseApi.injectEndpoints({
+const userApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     // create user
-    createUser: build.query({
-      query: () => ({
+    createUser: build.mutation({
+      query: ({ fullName, email, password }) => ({
         url: "users",
         method: "POST",
+        body: { fullName, email, password },
       }),
-      providesTags: ["User"],
+      invalidatesTags: ["User"],
     }),
   }),
 });
 
-export const { useCreateUserQuery } = visionApi;
+export const { useCreateUserMutation } = userApi;

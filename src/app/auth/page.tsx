@@ -2,15 +2,19 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useDispatch } from "react-redux"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Eye, EyeOff, Mail, Lock, User } from "lucide-react"
+import { useCreateUserMutation } from "@/redux/api/userApi"
+import { setUser } from "@/redux/features/authSlice"
 
 export default function AuthPage() {
   const router = useRouter()
+  const dispatch = useDispatch()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
@@ -20,10 +24,13 @@ export default function AuthPage() {
   const [loginPassword, setLoginPassword] = useState("")
   
   // register state
-  const [registerName, setRegisterName] = useState("")
+  const [registerFullName, setRegisterFullName] = useState("")
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+
+  // API hooks
+  const [createUser, { isLoading: apiLoading }] = useCreateUserMutation()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,14 +38,21 @@ export default function AuthPage() {
     setIsLoading(true)
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      localStorage.setItem('user', JSON.stringify({
-        id: '1',
-        name: 'Test User',
+      // Create user via API first (for demo purposes)
+      const result = await createUser({
+        fullName: 'Test User',
         email: loginEmail,
-        plan: 'free'
+        password: loginPassword,
+      }).unwrap()
+
+      // Store user in Redux
+      dispatch(setUser({
+        user: result,
+        token: 'mock-token'
       }))
+      
+      // Also store in localStorage for persistence
+      localStorage.setItem('user', JSON.stringify(result))
       
       router.push('/dashboard')
     } catch {
@@ -62,24 +76,26 @@ export default function AuthPage() {
       return
     }
 
-    setIsLoading(true)
-
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // store user info in localStorage
-      localStorage.setItem('user', JSON.stringify({
-        id: '1',
-        name: registerName,
+      // Create user via Redux API mutation
+      const result = await createUser({
+        fullName: registerFullName,
         email: registerEmail,
-        plan: 'free'
+        password: registerPassword,
+      }).unwrap()
+
+      // Store user in Redux
+      dispatch(setUser({
+        user: result,
+        token: 'mock-token' // In real app, this would come from API
       }))
+      
+      // Also store in localStorage for persistence
+      localStorage.setItem('user', JSON.stringify(result))
       
       router.push('/dashboard')
     } catch {
       setError("Registration failed. Please try again.")
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -179,8 +195,8 @@ export default function AuthPage() {
                       id="register-name"
                       type="text"
                       placeholder="Enter your name"
-                      value={registerName}
-                      onChange={(e) => setRegisterName(e.target.value)}
+                      value={registerFullName}
+                      onChange={(e) => setRegisterFullName(e.target.value)}
                       className="pl-10"
                       required
                     />
@@ -250,10 +266,10 @@ export default function AuthPage() {
 
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || apiLoading}
                   className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
                 >
-                  {isLoading ? (
+                  {isLoading || apiLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Creating Account...
