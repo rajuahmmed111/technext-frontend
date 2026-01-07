@@ -15,11 +15,11 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   
-  // Login state
+  // login state
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
   
-  // Register state
+  // register state
   const [registerName, setRegisterName] = useState("")
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
@@ -31,10 +31,8 @@ export default function AuthPage() {
     setIsLoading(true)
 
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Store user info in localStorage (in real app, use secure auth)
       localStorage.setItem('user', JSON.stringify({
         id: '1',
         name: 'Test User',
@@ -67,10 +65,9 @@ export default function AuthPage() {
     setIsLoading(true)
 
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Store user info in localStorage
+      // store user info in localStorage
       localStorage.setItem('user', JSON.stringify({
         id: '1',
         name: registerName,
