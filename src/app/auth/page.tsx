@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Eye, EyeOff, Mail, Lock, User } from "lucide-react"
 import { useCreateUserMutation } from "@/redux/api/userApi"
+import { useLoginMutation } from "@/redux/api/authApi"
 import { setUser } from "@/redux/features/authSlice"
 
 export default function AuthPage() {
@@ -31,6 +32,7 @@ export default function AuthPage() {
 
   // API hooks
   const [createUser, { isLoading: apiLoading }] = useCreateUserMutation()
+  const [login, { isLoading: loginLoading }] = useLoginMutation()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,25 +40,30 @@ export default function AuthPage() {
     setIsLoading(true)
 
     try {
-      // Create user via API first (for demo purposes)
-      const result = await createUser({
-        fullName: 'Test User',
+      const response = await login({
         email: loginEmail,
         password: loginPassword,
       }).unwrap()
 
-      // Store user in Redux (no token from user creation API)
-      dispatch(setUser({
-        user: result,
-        token: null
-      }))
-      
-      // Store user in localStorage for persistence
-      localStorage.setItem('user', JSON.stringify(result))
-      
-      router.push('/dashboard')
+      if (response?.data?.accessToken) {
+        const fullData = {
+          user: response.data.user,
+          token: response.data.accessToken,
+          refreshToken: response.data.refreshToken,
+        }
+
+        // Store tokens in localStorage
+        localStorage.setItem("accessToken", response.data.accessToken)
+        localStorage.setItem("refreshToken", response.data.refreshToken)
+        localStorage.setItem("user", JSON.stringify(response.data.user))
+
+        // Store user in Redux
+        dispatch(setUser(fullData))
+        
+        router.push('/dashboard')
+      }
     } catch {
-      setError("Login failed. Please try again.")
+      setError("Login failed. Please check your credentials.")
     } finally {
       setIsLoading(false)
     }
@@ -78,22 +85,26 @@ export default function AuthPage() {
 
     try {
       // Create user via Redux API mutation
-      const result = await createUser({
+      await createUser({
         fullName: registerFullName,
         email: registerEmail,
         password: registerPassword,
       }).unwrap()
 
-      // Store user in Redux (no token from user creation API)
-      dispatch(setUser({
-        user: result,
-        token: null
-      }))
+      // Show success message and redirect to login
+      setError("Account created successfully! Please sign in.")
       
-      // Store user in localStorage for persistence
-      localStorage.setItem('user', JSON.stringify(result))
+      // Clear form
+      setRegisterFullName('')
+      setRegisterEmail('')
+      setRegisterPassword('')
+      setConfirmPassword('')
       
-      router.push('/dashboard')
+      // Switch to login tab after 2 seconds
+      setTimeout(() => {
+        setError("")
+      }, 3000)
+      
     } catch {
       setError("Registration failed. Please try again.")
     }
@@ -170,10 +181,10 @@ export default function AuthPage() {
 
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || loginLoading}
                   className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
                 >
-                  {isLoading ? (
+                  {isLoading || loginLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Signing In...
