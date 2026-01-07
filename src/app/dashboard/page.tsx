@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useDispatch } from "react-redux"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,6 +19,9 @@ import {
   Users,
   Link2
 } from "lucide-react"
+import { useLogoutMutation } from "@/redux/api/authApi"
+import { logout } from "@/redux/features/authSlice"
+import { persistor } from "@/redux/store"
 
 interface User {
   id: string
@@ -37,12 +41,16 @@ interface Link {
 
 export default function Dashboard() {
   const router = useRouter()
+  const dispatch = useDispatch()
   const [user, setUser] = useState<User | null>(null)
   const [links, setLinks] = useState<Link[]>([])
   const [copied, setCopied] = useState<string | null>(null)
   const [newUrl, setNewUrl] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  
+  // API hooks
+  const [logoutApi, { isLoading: logoutLoading }] = useLogoutMutation()
   
   // Free plan limit
   const FREE_PLAN_LIMIT = 10
@@ -136,9 +144,25 @@ export default function Dashboard() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('user')
-    router.push('/')
+  const handleLogout = async () => {
+    try {
+      // Call logout API
+      await logoutApi({}).unwrap()
+    } catch {
+      console.log("Logout API failed, proceeding with local logout")
+    } finally {
+      // Clear local storage and state regardless of API success
+      localStorage.removeItem('user')
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      
+      // Clear Redux state and persist
+      dispatch(logout())
+      persistor.purge()
+      
+      // Redirect to home
+      router.push('/')
+    }
   }
 
   const formatDate = (date: Date) => {
@@ -194,10 +218,11 @@ export default function Dashboard() {
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
+                disabled={logoutLoading}
                 className="gap-2"
               >
                 <LogOut className="w-4 h-4" />
-                Logout
+                {logoutLoading ? "Logging out..." : "Logout"}
               </Button>
             </div>
           </div>

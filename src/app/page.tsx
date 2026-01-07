@@ -2,15 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useDispatch } from "react-redux"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Zap } from "lucide-react"
 import { UrlForm } from "@/components/url-form"
 import { RecentLinks } from "@/components/recent-links"
-import { useLogoutMutation } from "@/redux/api/authApi"
-import { logout } from "@/redux/features/authSlice"
-import { persistor } from "@/redux/store"
 
 interface User {
   id: string
@@ -21,7 +17,6 @@ interface User {
 
 export default function Home() {
   const router = useRouter()
-  const dispatch = useDispatch()
   const [user, setUser] = useState<User | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [shortLinks, setShortLinks] = useState<
@@ -33,11 +28,6 @@ export default function Home() {
       createdAt: Date
     }>
   >([])
-
-  const [storageEvent, setStorageEvent] = useState(0)
-
-  // API 
-  const [logoutApi, { isLoading: logoutLoading }] = useLogoutMutation()
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -53,24 +43,7 @@ export default function Home() {
       setUser(null)
       setShortLinks([])
     }
-  }, [storageEvent])
-
-  const handleLogout = async () => {
-    try {
-      await logoutApi({}).unwrap()
-    } catch {
-      console.log("Logout API failed, proceeding with local logout")
-    } finally {
-      localStorage.removeItem('user')
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
-      
-      dispatch(logout())
-      persistor.purge()
-      
-      setStorageEvent(prev => prev + 1)
-    }
-  }
+  }, [])
 
   const handleCopyClick = (shortCode: string) => {
     const shortUrl = `${window.location.origin}/s/${shortCode}`
@@ -112,10 +85,15 @@ export default function Home() {
               <Button 
                 variant="outline"
                 size="sm" 
-                onClick={handleLogout}
-                disabled={logoutLoading}
+                onClick={() => {
+                  localStorage.removeItem('user')
+                  localStorage.removeItem('accessToken')
+                  localStorage.removeItem('refreshToken')
+                  setUser(null)
+                  setShortLinks([])
+                }}
               >
-                {logoutLoading ? "Logging out..." : "Logout"}
+                Logout
               </Button>
             </div>
           ) : (
