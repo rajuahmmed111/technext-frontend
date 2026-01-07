@@ -45,13 +45,13 @@ export default function AuthPage() {
         password: loginPassword,
       }).unwrap()
 
-      // Store user in Redux
+      // Store user in Redux (no token from user creation API)
       dispatch(setUser({
         user: result,
-        token: 'mock-token'
+        token: null
       }))
       
-      // Also store in localStorage for persistence
+      // Store user in localStorage for persistence
       localStorage.setItem('user', JSON.stringify(result))
       
       router.push('/dashboard')
@@ -84,13 +84,13 @@ export default function AuthPage() {
         password: registerPassword,
       }).unwrap()
 
-      // Store user in Redux
+      // Store user in Redux (no token from user creation API)
       dispatch(setUser({
         user: result,
-        token: 'mock-token' // In real app, this would come from API
+        token: null
       }))
       
-      // Also store in localStorage for persistence
+      // Store user in localStorage for persistence
       localStorage.setItem('user', JSON.stringify(result))
       
       router.push('/dashboard')

@@ -5,7 +5,7 @@ const userApi = baseApi.injectEndpoints({
     // create user
     createUser: build.mutation({
       query: ({ fullName, email, password }) => ({
-        url: "users",
+        url: "/users",
         method: "POST",
         body: { fullName, email, password },
       }),
