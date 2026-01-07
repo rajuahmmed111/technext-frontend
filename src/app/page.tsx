@@ -10,6 +10,7 @@ import { UrlForm } from "@/components/url-form"
 import { RecentLinks } from "@/components/recent-links"
 import { useLogoutMutation } from "@/redux/api/authApi"
 import { logout } from "@/redux/features/authSlice"
+import { persistor } from "@/redux/store"
 
 interface User {
   id: string
@@ -35,7 +36,7 @@ export default function Home() {
 
   const [storageEvent, setStorageEvent] = useState(0)
 
-  // API hooks
+  // API 
   const [logoutApi, { isLoading: logoutLoading }] = useLogoutMutation()
 
   useEffect(() => {
@@ -44,32 +45,29 @@ export default function Home() {
       const parsedUser = JSON.parse(userData)
       setUser(parsedUser)
       
-      // Load user's links
       const userLinks = localStorage.getItem(`links_${parsedUser.id}`)
       if (userLinks) {
         setShortLinks(JSON.parse(userLinks))
       }
     } else {
-      // Clear user state if no user data in localStorage
       setUser(null)
       setShortLinks([])
     }
-  }, [storageEvent]) // Re-run when storageEvent changes
+  }, [storageEvent])
 
   const handleLogout = async () => {
     try {
-      // Call logout API
       await logoutApi({}).unwrap()
     } catch {
       console.log("Logout API failed, proceeding with local logout")
     } finally {
-      // Clear local storage and state regardless of API success
       localStorage.removeItem('user')
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
-      dispatch(logout())
       
-      // Trigger storage event to update UI
+      dispatch(logout())
+      persistor.purge()
+      
       setStorageEvent(prev => prev + 1)
     }
   }
