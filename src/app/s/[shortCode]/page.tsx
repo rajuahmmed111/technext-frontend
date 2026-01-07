@@ -13,13 +13,24 @@ interface Link {
   lastClicked?: Date
 }
 
-export default function RedirectPage({ params }: { params: { shortCode: string } }) {
+export default function RedirectPage({ params }: { params: Promise<{ shortCode: string }> }) {
   const router = useRouter()
   const [error, setError] = useState("")
   const [url, setUrl] = useState("")
   const [countdown, setCountdown] = useState(3)
+  const [shortCode, setShortCode] = useState("")
 
   useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params
+      setShortCode(resolvedParams.shortCode)
+    }
+    getParams()
+  }, [params])
+
+  useEffect(() => {
+    if (!shortCode) return
+
     const findAndRedirect = async () => {
       try {
         // Get all users' links from localStorage
@@ -30,7 +41,7 @@ export default function RedirectPage({ params }: { params: { shortCode: string }
 
         for (const userKey of users) {
           const links = JSON.parse(localStorage.getItem(userKey) || "[]")
-          const link = links.find((l: Link) => l.shortCode === params.shortCode)
+          const link = links.find((l: Link) => l.shortCode === shortCode)
           
           if (link) {
             foundUrl = link.originalUrl
@@ -75,7 +86,7 @@ export default function RedirectPage({ params }: { params: { shortCode: string }
     }
 
     findAndRedirect()
-  }, [params.shortCode])
+  }, [shortCode])
 
   if (error) {
     return (
