@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useDispatch } from "react-redux"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Zap } from "lucide-react"
 import { UrlForm } from "@/components/url-form"
 import { RecentLinks } from "@/components/recent-links"
+import { useLogoutMutation } from "@/redux/api/authApi"
+import { logout } from "@/redux/features/authSlice"
 
 interface User {
   id: string
@@ -17,6 +20,7 @@ interface User {
 
 export default function Home() {
   const router = useRouter()
+  const dispatch = useDispatch()
   const [user, setUser] = useState<User | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [shortLinks, setShortLinks] = useState<
@@ -28,7 +32,11 @@ export default function Home() {
       createdAt: Date
     }>
   >([])
-  
+
+  const [storageEvent, setStorageEvent] = useState(0)
+
+  // API hooks
+  const [logoutApi, { isLoading: logoutLoading }] = useLogoutMutation()
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -41,8 +49,30 @@ export default function Home() {
       if (userLinks) {
         setShortLinks(JSON.parse(userLinks))
       }
+    } else {
+      // Clear user state if no user data in localStorage
+      setUser(null)
+      setShortLinks([])
     }
-  }, [])
+  }, [storageEvent]) // Re-run when storageEvent changes
+
+  const handleLogout = async () => {
+    try {
+      // Call logout API
+      await logoutApi({}).unwrap()
+    } catch {
+      console.log("Logout API failed, proceeding with local logout")
+    } finally {
+      // Clear local storage and state regardless of API success
+      localStorage.removeItem('user')
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      dispatch(logout())
+      
+      // Trigger storage event to update UI
+      setStorageEvent(prev => prev + 1)
+    }
+  }
 
   const handleCopyClick = (shortCode: string) => {
     const shortUrl = `${window.location.origin}/s/${shortCode}`
@@ -84,13 +114,10 @@ export default function Home() {
               <Button 
                 variant="outline"
                 size="sm" 
-                onClick={() => {
-                  localStorage.removeItem('user')
-                  setUser(null)
-                  setShortLinks([])
-                }}
+                onClick={handleLogout}
+                disabled={logoutLoading}
               >
-                Logout
+                {logoutLoading ? "Logging out..." : "Logout"}
               </Button>
             </div>
           ) : (
