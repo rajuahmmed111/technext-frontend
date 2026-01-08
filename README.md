@@ -1,13 +1,13 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Project Live Link : https://matthew-frontend.vercel.app/
+## Project Live Link : https://technext-frontend.vercel.app/
 
 ## Getting Started
 
 ```bash
-1. git clone https://github.com/rajuahmmed111/matthew-frontend
+1. git clone https://github.com/rajuahmmed111/technext-frontend.git
 
-2. cd matthew-frontend
+2. cd technext-frontend
 
 3. npm install
 
